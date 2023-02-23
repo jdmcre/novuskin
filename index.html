@@ -64,7 +64,6 @@
         </form>
     </div>
 
-
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoiZG1vcmdhbjkzIiwiYSI6ImNsZTZpOHJ3NzBrdTgzcW5xemYyeGZ3bzYifQ.A9znlkGmfreXyt8Ag9Q5VA';
 
@@ -74,29 +73,6 @@
             center: [-96.73289224902703, 33.12532016042221], // starting position [lng, lat]
             zoom: 11.5 // starting zoom
         });
-
-        const locations = [
-            { lat: 39.62338828364178, lng: -104.89378900019817, name: "Denver Novuskin" },
-            { lat: 36.05829168716713, lng: -115.24362011028013, name: "Las Vegas Novuskin" }
-        ];
-
-        function addDots(locations) {
-            const features = locations.map(location => ({
-                type: 'Feature',
-                geometry: {
-                    type: 'Point',
-                    coordinates: [location.lng, location.lat]
-                },
-                properties: {
-                    name: location.name
-                }
-            }));
-            map.getSource('dots').setData({
-                type: 'FeatureCollection',
-                features: features
-            });
-        }
-
 
         // Target the params form in the HTML
         const params = document.getElementById('params');
@@ -141,13 +117,6 @@
             getIso();
         });
 
-
-
-
-
-
-
-
         map.on('load', () => {
             // When the map loads, add the source and layer
             map.addSource('iso', {
@@ -177,49 +146,7 @@
 
             // Make the API call
             getIso();
-
-            map.addSource('dots', {
-                type: 'geojson',
-                data: {
-                    type: 'FeatureCollection',
-                    features: []
-                }
-            });
-
-            map.addLayer({
-                id: 'dotsLayer',
-                type: 'circle',
-                source: 'dots',
-                paint: {
-                    'circle-color': '#3bb2d0',
-                    'circle-radius': 6,
-                    'circle-stroke-width': 2,
-                    'circle-stroke-color': '#fff'
-                }
-            });
-
-            var popup = new mapboxgl.Popup();
-
-            map.on('mouseenter', 'dotsLayer', function (e) {
-                var features = map.queryRenderedFeatures(e.point, { layers: ['dotsLayer'] });
-                if (!features.length) {
-                    return;
-                }
-                var feature = features[0];
-                popup.setLngLat(feature.geometry.coordinates)
-                    .setHTML('<h1>' + feature.properties['name'] + '</h1>')
-                    .addTo(map);
-            });
-
-            map.on('mouseleave', 'dotsLayer', function () {
-                popup.remove();
-            });
-
-
-            addDots(locations);
         });
-
-
     </script>
 </body>
 
