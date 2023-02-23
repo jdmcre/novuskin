@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>DriveTimes</title>
+    <title>NOVUSKIN</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- Mapbox GL JS -->
     <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.js"></script>
@@ -31,7 +31,7 @@
 
     <div class="absolute fl my24 mx24 py24 px24 bg-gray-faint round">
         <form id="params">
-            <h4 class="txt-m txt-bold mb6">Choose a travel mode:</h4>
+            <h4 class="txt-m txt-bold mb6">Travel mode:</h4>
             <div class="mb12 mr12 toggle-group align-center">
                 <!-- <label class="toggle-container">
 <input name="profile" type="radio" value="walking" />
@@ -46,7 +46,7 @@
                     <div class="toggle toggle--active-null toggle--null">Driving</div>
                 </label>
             </div>
-            <h4 class="txt-m txt-bold mb6">Choose a maximum duration:</h4>
+            <h4 class="txt-m txt-bold mb6">Drive Times:</h4>
             <div class="mb12 mr12 toggle-group align-center">
                 <label class="toggle-container">
                     <input name="duration" type="radio" value="30" checked />
@@ -72,7 +72,7 @@
             container: 'map', // container id
             style: 'mapbox://styles/mapbox/streets-v12', // stylesheet
             center: [-96.73289224902703, 33.12532016042221], // starting position [lng, lat]
-            zoom: 11.5 // starting zoom
+            zoom: 9 // starting zoom
         });
 
         const locations = [
@@ -97,6 +97,30 @@
             });
         }
 
+        const focus = [
+            { lat: 32.940977053084865, lng: -97.13215482166977, name: "Southlake" },
+            { lat: 32.72829014612599, lng: -97.36132875949319, name: "Fort Worth" },
+            { lat: 32.83323836967106, lng: -96.79238046367581, name: "Highland Park" },
+            { lat: 33.03599352782713, lng: -97.07049530444593, name: "Flower Mound" },
+            { lat: 32.9342619290707, lng: -97.23383299166966, name: "Keller" }
+        ];
+
+        function addFocus(focus) {
+            const features = focus.map(location => ({
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [location.lng, location.lat]
+                },
+                properties: {
+                    name: location.name
+                }
+            }));
+            map.getSource('focus').setData({
+                type: 'FeatureCollection',
+                features: features
+            });
+        }
 
         // Target the params form in the HTML
         const params = document.getElementById('params');
@@ -172,11 +196,21 @@
                 'poi-label'
             );
 
+            // Define the marker options
+            var markerOptions = {
+                color: "blue",
+                size: 1
+            };
+
             // Initialize the marker at the query coordinates
-            marker.setLngLat(lngLat).addTo(map);
+            var marker = new mapboxgl.Marker(markerOptions)
+                .setLngLat(lngLat)
+                .addTo(map);
 
             // Make the API call
             getIso();
+
+////NEW LAYER SHOWING EXISTING LOCATIONS
 
             map.addSource('dots', {
                 type: 'geojson',
@@ -214,9 +248,47 @@
             map.on('mouseleave', 'dotsLayer', function () {
                 popup.remove();
             });
+/////NEW LAYER SHOWING FOCUS AREA
+            map.addSource('focus', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: []
+                }
+            });
+
+            map.addLayer({
+                id: 'focusLayer',
+                type: 'circle',
+                source: 'focus',
+                paint: {
+                    'circle-color': 'black',
+                    'circle-radius': 8,
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#fff'
+                }
+            });
+
+            var popup = new mapboxgl.Popup();
+
+            map.on('mouseenter', 'focusLayer', function (e) {
+                var features = map.queryRenderedFeatures(e.point, { layers: ['focusLayer'] });
+                if (!features.length) {
+                    return;
+                }
+                var feature = features[0];
+                popup.setLngLat(feature.geometry.coordinates)
+                    .setHTML('<h1>' + feature.properties['name'] + '</h1>')
+                    .addTo(map);
+            });
+
+            map.on('mouseleave', 'focusLayer', function () {
+                popup.remove();
+            });
 
 
             addDots(locations);
+            addFocus(focus);
         });
 
 
